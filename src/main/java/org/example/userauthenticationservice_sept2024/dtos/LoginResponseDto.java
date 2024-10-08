@@ -7,4 +7,6 @@ import lombok.Setter;
 @Getter
 public class LoginResponseDto {
     private RequestStatus requestStatus;
+    private String token;
+
 }

@@ -38,11 +38,13 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
         LoginResponseDto response = new LoginResponseDto();
         try {
+            /*String token = authService.login(request.getEmail(), request.getPassword());
+            // Setting the token in the response
+            response.setToken(token);*/
             authService.login(request.getEmail(), request.getPassword());
             response.setRequestStatus(RequestStatus.SUCCESS);
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             response.setRequestStatus(RequestStatus.FAILURE);
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
