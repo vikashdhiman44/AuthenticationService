@@ -56,5 +56,11 @@ public class AuthController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
+
+
+    @PostMapping("/validateToken")
+    public Boolean validateToken(@RequestBody ValidateTokenDto validateTokenDto) {
+       return authService.validateToken(validateTokenDto.getUserId(), validateTokenDto.getToken());
+    }
 }
 
