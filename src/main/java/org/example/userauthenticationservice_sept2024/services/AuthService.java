@@ -1,10 +1,14 @@
 package org.example.userauthenticationservice_sept2024.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.MacAlgorithm;
 import org.antlr.v4.runtime.misc.Pair;
+import org.example.userauthenticationservice_sept2024.client.KafkaProducerClient;
+import org.example.userauthenticationservice_sept2024.dtos.EmailDto;
 import org.example.userauthenticationservice_sept2024.exceptions.UserAlreadyExistsException;
 import org.example.userauthenticationservice_sept2024.exceptions.UserNotFoundException;
 import org.example.userauthenticationservice_sept2024.exceptions.WrongPasswordException;
@@ -38,6 +42,12 @@ public class AuthService {
     @Autowired
     private SecretKey secretKey;
 
+    @Autowired
+    private KafkaProducerClient kafkaProducerClient;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
 //    public AuthService(UserRepository userRepository,BCryptPasswordEncoder bcryptPasswordEncoder) {
 //        this.userRepository = userRepository;
 //        this.bcryptPasswordEncoder = bcryptPasswordEncoder;
@@ -53,16 +63,31 @@ public class AuthService {
         //user.setPassword(password);
         user.setPassword(hashedPassword);
         userRepository.save(user);
+
+        //sending email logic
+        try {
+            EmailDto emailDto = new EmailDto();
+            emailDto.setTo(email);
+            emailDto.setFrom("anuragbatch@gmail.com");
+            emailDto.setSubject("Welcome to Scaler Academy");
+            emailDto.setBody("Welcome to Scaler Academy. You have successfully signed up.");
+            kafkaProducerClient.sendMessage("signupt", objectMapper.writeValueAsString(emailDto));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
         return true;
     }
 
-    public Pair<Boolean,String> login(String email, String password) throws UserNotFoundException, WrongPasswordException {
+    public Pair<Boolean, String> login(String email, String password) throws UserNotFoundException, WrongPasswordException {
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
             throw new UserNotFoundException("User with email: " + email + " not found.");
         }
         //boolean matches = password.equals(userOptional.get().getPassword());
-        boolean matches = bcryptPasswordEncoder.matches(password,userOptional.get().getPassword());
+        boolean matches = bcryptPasswordEncoder.matches(password, userOptional.get().getPassword());
 
         //check current time stamp and compare with session timestamp and then mark entry as
         //active or expired
@@ -77,16 +102,16 @@ public class AuthService {
 //                "   \"expirationDate\": \"2ndApril2025\"\n" +
 //                "}";
 
-       // byte[] content = message.getBytes(StandardCharsets.UTF_8);
+        // byte[] content = message.getBytes(StandardCharsets.UTF_8);
 
-        Map<String,Object> claims  = new HashMap<>();
+        Map<String, Object> claims = new HashMap<>();
         Long currentTimeInMillis = System.currentTimeMillis();
-        claims.put("iat",currentTimeInMillis);
-        claims.put("exp",currentTimeInMillis+864000);
-        claims.put("user_id",userOptional.get().getId());
-        claims.put("issuer","scaler");
+        claims.put("iat", currentTimeInMillis);
+        claims.put("exp", currentTimeInMillis + 864000);
+        claims.put("user_id", userOptional.get().getId());
+        claims.put("issuer", "scaler");
 
-        String token  = Jwts.builder().claims(claims).signWith(secretKey).compact();
+        String token = Jwts.builder().claims(claims).signWith(secretKey).compact();
 
         Session session = new Session();
         session.setToken(token);
@@ -95,7 +120,7 @@ public class AuthService {
         sessionRepo.save(session);
 
         if (matches) {
-            return new Pair<Boolean,String>(true,token);
+            return new Pair<Boolean, String>(true, token);
         } else {
             throw new WrongPasswordException("Wrong password.");
         }
@@ -105,20 +130,20 @@ public class AuthService {
     //xyxyxyxyyx.hdiwhdiwhi.budiwhiowheori
 
     public Boolean validateToken(Long userId, String token) {
-       Optional<Session> optionalSession = sessionRepo.findByTokenAndUser_Id(token,userId);
+        Optional<Session> optionalSession = sessionRepo.findByTokenAndUser_Id(token, userId);
 
-       if(optionalSession.isEmpty()) {
-           System.out.println("Token or userId not found");
-           return false;
-       }
+        if (optionalSession.isEmpty()) {
+            System.out.println("Token or userId not found");
+            return false;
+        }
 
         JwtParser jwtParser = Jwts.parser().verifyWith(secretKey).build();
         Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 
-        Long expiry = (Long)claims.get("exp");
+        Long expiry = (Long) claims.get("exp");
         Long currentTimeStamp = System.currentTimeMillis();
 
-        if(currentTimeStamp > expiry) {
+        if (currentTimeStamp > expiry) {
             System.out.println(expiry);
             System.out.println(currentTimeStamp);
             System.out.println("Token is expired");
@@ -132,10 +157,6 @@ public class AuthService {
         return true;
     }
 }
-
-
-
-
 
 
 //stored token somewhere

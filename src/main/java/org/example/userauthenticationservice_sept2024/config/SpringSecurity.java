@@ -18,13 +18,13 @@ public class SpringSecurity {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+   /* @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors().disable();
         httpSecurity.csrf().disable();
         httpSecurity.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
         return httpSecurity.build();
-    }
+    }*/
 
     @Bean
     public SecretKey secretKey() {

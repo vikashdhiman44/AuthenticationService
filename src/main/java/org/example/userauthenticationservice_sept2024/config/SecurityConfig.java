@@ -70,7 +70,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
+   /* @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
@@ -83,7 +83,7 @@ public class SecurityConfig {
                 .formLogin(Customizer.withDefaults());
 
         return http.build();
-    }
+    }*/
 
             //bcryptpasswordencoder.encode("password") == "password"
             //bcryptpasswordencoder.encode("password") == bcryptpasswordencoder.encode("password")

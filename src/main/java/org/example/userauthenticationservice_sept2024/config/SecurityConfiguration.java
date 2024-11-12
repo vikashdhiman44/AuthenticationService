@@ -14,19 +14,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
-    @Bean
+   /* @Bean
     public InMemoryUserDetailsManager userDetailsService() {
         UserDetails user = User.withUsername("user")
                 .password(encoder().encode("userPass"))
                 .roles("USER")
                 .build();
         return new InMemoryUserDetailsManager(user);
-    }
+    }*/
 
-    @Bean
+    /*@Bean
     public PasswordEncoder encoder() {
         return new BCryptPasswordEncoder();
-    }
+    }*/
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
